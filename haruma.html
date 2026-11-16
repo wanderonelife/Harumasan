@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>はるまさんバージョン</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* layout: one-screen phone app. Blush letter paper, soft rose shadows, handwritten message cards, gentle stamps. */
+  --sky:#fdf3f1; --paper:#ffffff; --ink:#6b4955; --dim:#a98b96; --line:#f6dbe3;
+  --red:#e07c9a; --blue:#9a90cf; --sun:#fddbe4; --ok:#4fae97; --moya:#a892d8; --moyabg:#faf5fe;
+  --display:"DotGothic16",system-ui,sans-serif;
+  --body:"DotGothic16",system-ui,sans-serif;
+  --hand:"DotGothic16",system-ui,sans-serif;
+  --soft:0 8px 24px rgba(232,150,175,.16);
+  --stripe:repeating-linear-gradient(135deg,#fbd3de 0 10px,#fff 10px 20px,#fde9ee 20px 30px,#fff 30px 40px);
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:#fdeef2;color:var(--ink);font-family:var(--body);font-weight:400;font-synthesis:none;line-height:1.75;line-break:strict}
+*{font-weight:400!important}
+button,input{font:inherit;color:inherit}
+#app{height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;background:var(--sky);position:relative}
+#hud{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--paper);border-bottom:2px solid var(--line)}
+#hud::after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--stripe)}
+#hud{padding-top:14px}
+.pips{display:flex;gap:5px;flex:1}
+.pip{flex:1;height:8px;border-radius:99px;border:2px solid var(--line);background:#fff}
+.pip.on{border-color:var(--red)}
+.pip.on{background:var(--red)}.pip.done{background:#f8c6d3}
+#score{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;min-width:58px;text-align:right}
+#score.bump{animation:bump .35s}
+@keyframes bump{50%{transform:scale(1.35);color:var(--red)}}
+.hb{border:2px solid var(--line);background:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer}
+#view{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+#foot{padding:10px 16px 16px;display:flex;flex-direction:column;gap:10px}
+#foot:empty{display:none}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.3}
+h1{font-size:38px;letter-spacing:.08em;color:var(--red)}
+.tag,.stamp,#score,.combo,.rank,.big,.lab,.seal,.mark,.zero{font-weight:400}
+.sortcard,.sent,.seg,.mk .out,.b.y .tx{font-family:var(--hand)}
+h2{font-size:22px}
+p{margin:0}
+.dim{color:var(--dim);font-size:13px}
+.tag{display:inline-block;font-family:var(--display);font-size:12px;letter-spacing:.08em;background:#fde3ea;color:var(--red);padding:2px 12px;border-radius:99px;margin-bottom:6px}
+.btn{display:block;width:100%;padding:14px;border:2px solid #f3bccb;border-radius:99px;background:var(--sun);font-weight:900;font-size:16px;box-shadow:0 4px 0 #f3bccb;cursor:pointer;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #f3bccb}
+.btn.alt{background:#fff}
+.px{display:block;width:100%;height:auto}
+.px.bob{animation:bob 1.4s steps(2) infinite}
+.trio{display:flex;align-items:center;gap:10px}.trio i{display:block;width:46px}.trio i:nth-child(4){width:52px}.trio .sp{width:20px;align-self:flex-start}
+.px.tw{animation:tw 1.2s steps(2) infinite}@keyframes tw{50%{opacity:.35}}
+@keyframes bob{50%{translate:0 -4px}}
+.open,.inter{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-top:10px}
+.open .art,.inter .art{display:flex;flex-direction:column;align-items:center;min-height:70px;justify-content:center}
+.open .catch{font-weight:900;font-size:17px;color:var(--ink)}
+.open .lines{display:grid;gap:12px;font-size:16px;line-height:1.8}
+.open .lines .q{font-family:var(--display);font-size:20px;color:var(--red)}
+.inter h2{font-size:21px;line-height:1.6}
+.inter p{max-width:30em}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;font-size:12px;color:var(--dim)}
+.legend div{background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 4px}
+.legend b{display:block;font-size:15px;color:var(--ink)}
+.legend i{display:flex;align-items:center;width:30px;height:24px;margin:0 auto 4px}
+.form{font-family:var(--hand);font-weight:600;width:100%}
+.btn:focus-visible,.opt:focus-visible,.seg:focus-visible,.hb:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tri .btn{padding:10px 4px;font-size:13px;line-height:1.35}
+.tri .btn i{display:block;width:28px;height:22px;margin:0 auto 4px;display:flex;align-items:center}
+.tri .btn{border-radius:18px}.tri .f{background:#f3f1fd;border-color:var(--blue);box-shadow:0 4px 0 var(--blue)}.tri .e{background:#fff0f4}.tri .i{background:var(--moyabg);border-color:var(--moya);box-shadow:0 4px 0 var(--moya)}
+.tri .btn small{display:block;font-size:11px;font-weight:500;color:var(--dim)}
+.ticket{background:var(--paper);border:2px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--soft)}
+.ticket ol,.ticket ul{margin:6px 0 0;padding-left:1.3em}
+.ticket li{margin:2px 0}
+/* title */
+.hero{display:flex;flex-direction:column;gap:14px;align-items:flex-start;padding-top:8px}
+.hero .duo{display:flex;align-items:flex-end;gap:6px;align-self:center}
+.hero .duo .moya{width:150px}.hero .duo .hato{width:84px}
+.env{border:6px solid transparent;border-radius:20px;background:linear-gradient(#fff,#fff) padding-box,var(--stripe) border-box;padding:16px;width:100%;box-shadow:var(--soft)}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:12px}
+.b{display:flex;gap:8px;align-items:flex-end;animation:rise .3s ease}
+.b .av{width:46px;flex:none}
+.b .tx{background:#fff;border:2px solid var(--line);border-radius:14px 14px 14px 4px;padding:9px 14px;max-width:82%}
+.b.m .tx{background:var(--moyabg);border-color:var(--moya)}
+.b.y{flex-direction:row-reverse}.b.y .tx{background:#fdeaf0;border-radius:14px 14px 4px 14px}
+@keyframes rise{from{opacity:.2;transform:translateY(8px)}}
+.moya,.hato{display:block;width:100%;height:auto}
+/* sort */
+.count{display:flex;justify-content:space-between;font-weight:700;font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.combo{color:var(--red);font-family:var(--display)}
+.sortwrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:210px}
+.sortcard{position:relative;width:100%;min-height:200px;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px 18px;font-size:22px;font-weight:900;line-height:1.6;text-wrap:balance;word-break:auto-phrase}
+.sortcard.in{animation:deal .3s ease}
+@keyframes deal{from{transform:translateY(-24px) rotate(-3deg);opacity:.3}}
+.stamp{position:absolute;right:10px;bottom:10px;font-family:var(--display);font-size:17px;padding:2px 12px;border:4px double currentColor;border-radius:8px;transform:rotate(-10deg);background:rgba(255,255,255,.85);animation:thunk .25s ease-out}
+.stamp.f{color:var(--blue)}.stamp.i{color:var(--moya)}.stamp.e{color:var(--red)}
+@keyframes thunk{from{transform:rotate(-10deg) scale(2.6);opacity:0}}
+.mark{position:absolute;left:12px;top:6px;font-family:var(--display);font-size:30px}
+.mark.ok{color:var(--ok)}.mark.ng{color:var(--red)}
+.fb{border-left:6px solid var(--ok);background:#fff;border-radius:6px;padding:10px 12px;font-size:14px;animation:rise .25s}
+.fb.ng{border-color:var(--red)}
+/* translate */
+.blame{background:#fff;border:2px solid var(--line);border-radius:14px 14px 4px 14px;padding:12px;display:flex;flex-wrap:wrap;gap:6px;align-self:flex-end;max-width:94%}
+.seg{border:2px dashed var(--dim);background:#fff;border-radius:8px;padding:5px 9px;font-weight:700;font-size:16px;cursor:pointer;position:relative}
+.seg.hit{border:2px solid var(--red);background:#ffe6ee;text-decoration:line-through;text-decoration-color:var(--red)}
+.seg.hit small{display:block;text-decoration:none;font-size:11px;color:var(--red);line-height:1.2}
+.seg.safe{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.sheet{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:stretch}
+.row .lab{font-family:var(--display);font-size:13px;background:#fde3ea;color:var(--ink);border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.row .val{background:#fff;border:2px dashed var(--dim);border-radius:8px;padding:7px 10px;font-size:14px;min-height:40px;color:var(--dim)}
+.row.done .val{border:2px solid var(--line);color:var(--ink);font-weight:700}
+.row.cur .lab{background:var(--red);color:#fff}
+.row.cur .val{border-color:var(--red)}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;padding:12px 16px;border:2px solid var(--line);border-radius:18px;background:#fff;font-weight:700;font-size:15px;line-height:1.55;box-shadow:0 3px 0 var(--line);cursor:pointer}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 #f3bccb}
+.opt:disabled{cursor:default;box-shadow:none;opacity:.55}
+.opt.ng{background:#f6eef2;text-decoration:line-through;color:var(--dim)}
+.opt.ok{opacity:1;background:#def5ee;border-color:var(--ok);box-shadow:0 3px 0 var(--ok)}
+.sent{align-self:flex-end;background:var(--sun);border:2px solid var(--line);border-radius:14px 14px 4px 14px;padding:12px 14px;font-weight:700;max-width:92%;box-shadow:var(--soft)}
+.sent.fly{animation:fly .5s ease}
+@keyframes fly{from{transform:translateY(40px) scale(.9);opacity:.3}}
+.q{font-weight:900;font-size:17px;text-wrap:balance}
+/* delivery */
+.gauge{height:26px;border:2px solid var(--line);border-radius:99px;background:#fff;overflow:hidden}
+.gauge i{display:block;height:100%;background:var(--stripe);width:0}
+.phone{border:3px solid var(--line);border-radius:22px;background:#fff;padding:14px;text-align:center;box-shadow:var(--soft)}
+.phone .zero{font-family:var(--display);font-size:38px;color:var(--red);line-height:1.2}
+.two{display:grid;gap:8px}
+.two div{border-radius:10px;padding:8px 12px;font-size:14px;border:2px solid var(--line);background:#fff}
+.two div b{display:block;font-size:12px;color:var(--dim)}
+.two .inner{background:var(--moyabg);border-style:dashed}
+.stairs{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0;margin:0;align-items:end}
+.stairs li{font-size:11px;font-weight:700;text-align:center;border:2px solid var(--line);border-radius:6px 6px 0 0;background:#fff;padding:2px;display:flex;align-items:flex-end;justify-content:center}
+.stairs li:nth-child(1){height:26px}.stairs li:nth-child(2){height:36px}.stairs li:nth-child(3){height:46px}.stairs li:nth-child(4){height:56px}
+.stairs li.on{background:var(--ok);color:#fff}.stairs li.cur{background:var(--sun)}
+/* boss */
+.arena{display:flex;flex-direction:column;align-items:center;gap:4px}
+.arena .mw{height:150px;display:flex;align-items:center;justify-content:center;width:100%}
+.arena .px{width:190px;transition:transform .6s steps(5)}
+
+.hearts{display:flex;gap:5px}.hearts i{width:20px;display:block}
+.shout{background:var(--moyabg);border:2px dashed var(--moya);border-radius:14px;padding:10px 14px;font-weight:700;font-size:16px;text-align:center;width:100%;text-wrap:balance}.shout .tag{background:#fff;color:var(--moya);margin-bottom:2px}
+/* ending */
+.cert{text-align:center}
+.cert .rank{font-family:var(--display);font-size:21px;color:var(--red);margin:4px 0}
+.cert .big{font-family:var(--display);font-size:40px;font-variant-numeric:tabular-nums;line-height:1.2}
+.cert .seal{display:inline-block;font-family:var(--display);color:var(--red);border:4px double var(--red);border-radius:50%;width:74px;height:74px;line-height:66px;transform:rotate(-12deg);font-size:15px;margin-top:6px}
+.mk label{display:block;font-size:12px;font-weight:700;color:var(--dim);margin-top:8px}
+.mk input{width:100%;border:2px solid var(--line);border-radius:8px;padding:9px 10px;font-size:16px;background:#fff}
+.mk .out{margin-top:12px;background:var(--sun);border:2px solid var(--line);border-radius:12px;padding:12px;font-weight:700;user-select:all;-webkit-user-select:all}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="pips" id="pips" aria-hidden="true"></div>
+    <div id="score">0</div>
+    <button class="hb" id="sndBtn" onclick="toggleSnd()" aria-label="sound">♪</button>
+  </div>
+  <div id="view"></div>
+  <div id="foot"></div>
+</div>
+<script>
+/* ============ base ============ */
+let MUTE=false,AC=null;
+const $=id=>document.getElementById(id);
+const V=$('view'),F=$('foot');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const S={score:0,combo:0,maxCombo:0,stage:0,mk:{a:'',b:'',c:''},stat:{s1:0,first:0}};
+const SC={};let CUR='title';
+function go(n){CUR=n;render();V.scrollTop=0}
+function render(){SC[CUR]();hud()}
+function foot(h){F.innerHTML=h||''}
+const btn=(label,fn,cls='')=>`<button class="btn ${cls}" onclick="${fn}">${label}</button>`;
+const shead=(tag,h)=>`<div><span class="tag">${tag}</span><h2>${h}</h2></div>`;
+function add(n){S.score+=n;const e=$('score');e.textContent=S.score;e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')}
+function hud(){
+  $('pips').innerHTML=[1,2,3,4].map(i=>`<span class="pip ${S.stage>i?'done':S.stage===i?'on':''}"></span>`).join('');
+  $('score').textContent=S.score;$('sndBtn').textContent=MUTE?'×':'♪';
+}
+function toggleSnd(){MUTE=!MUTE;hud();sfx('tap')}
+function sfx(k){if(MUTE)return;try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+  const seq={tap:[[520,.05]],ok:[[660,.07],[990,.11]],ng:[[190,.15]],stamp:[[130,.07]],hit:[[330,.06],[494,.06],[740,.12]],win:[[523,.1],[659,.1],[784,.1],[1047,.25]]}[k]||[];
+  let t=AC.currentTime;seq.forEach(([f,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;
+    g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);t+=d*.9});
+}catch(e){}}
+
+/* ============ pixel art (no faces) ============ */
+const px=(rows,pal,cls='',st='')=>{const w=Math.max(...rows.map(r=>r.length));let r='';
+  rows.forEach((row,y)=>{[...row].forEach((c,x)=>{if(pal[c])r+=`<rect x="${x}" y="${y}" width="1.03" height="1.03" fill="${pal[c]}"/>`})});
+  return `<svg viewBox="0 0 ${w} ${rows.length}" class="px ${cls}" style="${st}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`};
+const rp=(c,n)=>c.repeat(n);
+const HEART=['..ooo...ooo..','.opppo.opppo.','opwwppppppppo','opwpppppppppo','o'+rp('p',11)+'o','.o'+rp('p',9)+'o.','..o'+rp('p',7)+'o..','...o'+rp('p',5)+'o...','....opppo....','.....opo.....','......o......'];
+const CLOUD=['......ooooo','.....occccco.ooo','..ooocccccccocccco','.o'+rp('c',16)+'o','o'+rp('c',17)+'o','o'+rp('c',17)+'o','.o'+rp('c',16)+'o','..'+rp('o',16)];
+const CHECK=['......o','.....oo','o...oo.','oo.oo..','.ooo...','..o....'];
+const HPAL={pink:{o:'#d98aa0',p:'#f8c9d4',w:'#ffffff'},lav:{o:'#a995c9',p:'#e8dcf4',w:'#ffffff'},rose:{o:'#d96c89',p:'#f5aabd',w:'#ffffff'}};
+const heart=(v='pink',cls='',st='')=>px(HEART,HPAL[v]||HPAL.pink,cls,st);
+const SPARK=['...o...','...o...','..o.o..','oo...oo','..o.o..','...o...','...o...'];
+const spark=()=>px(SPARK,{o:'#f3c57a'},'tw');
+const trio=()=>`<div class="trio"><i class="sp">${spark()}</i><i>${heart('lav')}</i><i>${heart('pink')}</i><i>${heart('rose')}</i></div>`;
+const heartOff=()=>px(HEART,{o:'#ecc9d4',p:'#fff7f9',w:'#fff7f9'});
+const cloud=(dark,cls='',st='')=>px(CLOUD,dark?{o:'#8f84b8',c:'#cdc4ea'}:{o:'#b9aede',c:'#f3effc'},cls,st);
+const check=()=>px(CHECK,{o:'#9a90cf'});
+
+/* ============ title ============ */
+SC.title=()=>{
+  let best=0;try{best=+(localStorage.getItem('kimochi_best')||0)}catch(e){}
+  V.innerHTML=`<div class="open">
+    <div class="art"><div style="width:110px">${cloud(false,'bob')}</div>${trio()}</div>
+    <h1>きもち翻訳局</h1>
+    <p class="catch">そのモヤモヤ、翻訳してみない？</p>
+    <div class="lines"><p>返信が来ない。</p><p>たったそれだけで、<br>頭の中ではもう失恋してる。</p><p class="q">でも、それって本当？</p><p>事実と想像を仕分けて、<br>言いたかったことを見つけよう。</p></div>
+    <p class="dim">約8分で遊べる、きもちの翻訳ゲーム。${best?`<br>これまでの最高 ${best}`:''}</p></div>`;
+  foot(btn('翻訳してみる ♡','startGame()'));
+};
+function startGame(){sfx('ok');S.score=0;S.combo=0;S.maxCombo=0;S.stage=1;S.stat={s1:0,first:0};TELE=0;inter('s1',s1Start)}
+
+/* ============ interstitial cards ============ */
+const INTER={
+ s1:{tag:'研修1｜仕分け',art:()=>`<div style="width:110px">${cloud(false,'bob')}</div>`,h:'ちょっと待って。<br>それ、本当に起きたこと？',
+  p:['カードを読んで、スタンプをひとつ。'],
+  extra:()=>`<div class="legend"><div><i>${check()}</i><b>事実</b>確認できた</div><div><i>${cloud()}</i><b>想像</b>まだ未確認</div><div><i>${heart()}</i><b>気持ち</b>感じたこと</div></div>`},
+ s2:{tag:'研修2｜翻訳',art:()=>`<div style="width:64px">${heart()}</div>`,h:'「なんで返信くれないの！」を、<br>ちゃんと伝わる言葉に。',
+  p:['まず、文の中の地雷をタップ。','それから、観察・感情・ニーズ・お願いの4つで組み立て直す。'],
+  extra:()=>`<div class="env form">私は、〇〇のとき、〇〇と感じた。<br>〇〇してもらえると嬉しい。</div>`},
+ s3:{tag:'研修3｜配達',art:()=>`<div style="width:64px">${heart('lav')}</div>`,h:'残念ながら、<br>テレパシーは未実装です。',
+  p:['念のため、一度だけ試しておきます。','送る内容は「本当は連休に会いたかった」。'],b:'試してみる'},
+ s3b:{tag:'研修3｜配達',art:()=>`<div style="width:64px">${heart('rose')}</div>`,h:'受信、0件。',
+  p:['こちら側では、こんなにはっきりしているのに。','というわけで、言葉で配達します。']},
+ boss:{tag:'最終試験',art:()=>`<div style="width:170px">${cloud(true,'bob')}</div>`,h:'深夜2時。既読3時間。<br>脳内、大騒ぎ。',
+  p:['脳内速報に、返事をひとつ選ぶ。','ハートは3つ。なくなったら、ひと休み。']},
+ bossEnd:{tag:'最終試験 合格',art:()=>`<div style="display:flex;align-items:flex-end;gap:10px">${trio()}<div style="width:40px">${cloud()}</div></div>`,h:'雲、だいぶ小さくなりました。',
+  p:['消えてはいません。','中身は「さみしい」でした。これは、持っていていいやつです。'],b:'つぎへ'},
+};
+function inter(key,next){S.inter={key,next};go('inter')}
+SC.inter=()=>{const c=INTER[S.inter.key];
+  V.innerHTML=`<div class="inter"><span class="tag">${c.tag}</span><div class="art">${c.art()}</div><h2>${c.h}</h2>${c.p.map(x=>`<p>${x}</p>`).join('')}${c.extra?c.extra():''}</div>`;
+  foot(btn(c.b||'はじめる','interNext()'))};
+function interNext(){sfx('tap');S.inter.next()}
+
+/* ============ stage 1: sort ============ */
+const KN={f:'事実',i:'想像',e:'気持ち'};
+const CARDS=[
+ {k:'f',t:'LINEを送って3時間、返信が来ていない',fb:'トーク画面と時計が証人。'},
+ {k:'i',t:'嫌われたから返信がない',fb:'理由は、まだ誰も確認していない。脳内の独自取材。'},
+ {k:'e',t:'寂しかった',fb:'事実でも想像でもなく、気持ち。これは本物。'},
+ {k:'f',t:'返事が翌日になった',fb:'記録に残っている。'},
+ {k:'i',t:'私を大切にしていない',fb:'相手の心の中は、まだ取材できていない。'},
+ {k:'i',t:'仕事で忙しかったのかもしれない',fb:'やさしい想像も、想像は想像。未確認。'},
+ {k:'f',t:'今月、会えたのは1回',fb:'数えれば分かる。'},
+ {k:'i',t:'私に飽きたんだ',fb:'相手の気持ちを、こちらで決定済みにしている。'},
+ {k:'i',t:'スマホを見ていないだけかも',fb:'可能性のひとつ。これも未確認。'},
+ {k:'f',t:'連休の予定について、まだ話が出ていない',fb:'「話が出ていない」という事実。'},
+ {k:'e',t:'不安でそわそわする',fb:'感じているのは自分。本物。'},
+ {k:'i',t:'きっと返信を考えてくれているはず',fb:'「はず」が付いたら、だいたい未確認。'},
+];
+function s1Start(){S.stage=1;S.s1={deck:[0,1,2].concat(shuffle([3,4,5,6,7,8,9,10,11])),i:0,ans:null,fresh:true};go('s1')}
+SC.s1=()=>{const s=S.s1,c=CARDS[s.deck[s.i]],ok=s.ans===c.k;
+  V.innerHTML=shead('研修1｜仕分け','それ、本当に起きたこと？')+
+   `<div class="count"><span>${s.i+1} / ${CARDS.length}</span><span class="combo">${S.combo>1?S.combo+' コンボ':''}</span></div>
+   <div class="sortwrap"><div class="env sortcard ${s.fresh?'in':''}">${c.t}${s.ans?`<span class="mark ${ok?'ok':'ng'}">${ok?'◯':'✕'}</span><span class="stamp ${c.k}">${KN[c.k]}</span>`:''}</div></div>
+   ${s.ans?`<div class="fb ${ok?'':'ng'}"><b>${KN[c.k]}</b>　${c.fb}</div>`:`<p class="dim" style="text-align:center">どのスタンプを押す？</p>`}`;
+  s.fresh=false;
+  foot(s.ans?btn('つぎへ','s1Next()'):`<div class="tri">
+    <button class="btn f" onclick="s1Ans('f')"><i>${check()}</i>事実<small>確認できた</small></button>
+    <button class="btn i" onclick="s1Ans('i')"><i>${cloud()}</i>想像<small>まだ未確認</small></button>
+    <button class="btn e" onclick="s1Ans('e')"><i>${heart()}</i>気持ち<small>感じたこと</small></button></div>`);
+};
+function s1Ans(k){const s=S.s1;if(s.ans)return;const c=CARDS[s.deck[s.i]];s.ans=k;
+  if(k===c.k){S.combo++;S.maxCombo=Math.max(S.maxCombo,S.combo);S.stat.s1++;add(100+10*(S.combo-1));sfx('stamp');setTimeout(()=>sfx('ok'),90);
+    const at=s.i;setTimeout(()=>{if(CUR==='s1'&&S.s1===s&&s.i===at&&s.ans)s1Next()},1700)}
+  else{S.combo=0;sfx('ng')}
+  render();
+}
+function s1Next(){const s=S.s1;s.i++;s.ans=null;s.fresh=true;if(s.i>=CARDS.length){go('s1end')}else render()}
+SC.s1end=()=>{S.stage=2;
+  V.innerHTML=shead('研修1 修了',`${S.stat.s1} / ${CARDS.length} 枚、仕分け完了`)+
+  `<div class="ticket"><b>翻訳メモ</b><ol><li>起きたことを書く。</li><li>そのとき考えたことを書く。</li><li>その考えに、証拠はあるか。</li><li>ほかの可能性は。</li></ol></div>
+  <p class="dim">なお「寂しかった」は仕分けの対象外です。本物なので。</p>`;
+  foot(btn('研修2へ',"inter('s2',s2Start)"));
+};
+
+/* ============ stage 2: translate ============ */
+const SLOT=[{lab:'観察',q:'実際に、何が起きた？'},{lab:'感情',q:'で、どう感じた？'},{lab:'ニーズ',q:'本当は、何が大事だった？'},{lab:'お願い',q:'具体的に、どうしてほしい？'}];
+const ROUNDS=[
+ {topic:'依頼1：返信について',
+  segs:['なんで','いつも','返信くれないの？','私のこと','大事じゃないんでしょ'],mines:{1:'広げすぎ',4:'決めつけ'},
+  why:'「いつも」は、昨日の1件を全件に拡大。「大事じゃないんでしょ」は、相手の気持ちをこちらで確定。',
+  slots:[
+   [{ok:1,t:'昨日の返信が翌日になって',fb:'昨日の、確認できる出来事だけ。'},{t:'いつも返信が遅くて',fb:'「いつも」で、昨日が全部になった。'},{t:'また無視されて',fb:'「無視」は出来事ではなく、評価。'}],
+   [{ok:1,t:'ちょっと寂しかった',fb:'気持ち、そのまま。'},{t:'あなたは冷たいと思った',fb:'それは気持ちではなく、相手の採点。'},{t:'大事にされてないと感じた',fb:'「感じた」を付けても、中身は相手の気持ちの推測。'}],
+   [{ok:1,t:'忙しくても、つながりを感じていたかった',fb:'ここが分かると、お願いが作りやすい。'},{t:'あなたに反省してほしかった',fb:'それは相手の宿題。自分が大事にしたかったものは、別にある。'},{t:'私が正しいと認めさせたかった',fb:'勝ち負けの話になっている。'}],
+   [{ok:1,t:'忙しいときは、ひとこと知らせてもらえると嬉しい',fb:'具体的。相手が何をすればいいか分かる。'},{t:'もっとちゃんとしてほしい',fb:'「ちゃんと」の中身は、言った本人にも不明。'},{t:'その冷たい性格を直してほしい',fb:'行動ではなく、人格のリフォーム依頼。'}]],
+  final:'昨日の返信が翌日になって、ちょっと寂しかった。忙しいときは、ひとこと知らせてもらえると嬉しい。'},
+ {topic:'依頼2：会う予定について',
+  segs:['最近','全然','会ってくれない。','私に','飽きたの？'],mines:{1:'広げすぎ',4:'決めつけ'},
+  why:'「全然」は、実際より大きめ。「飽きたの？」は、相手の気持ちの決め打ち。',
+  slots:[
+   [{ok:1,t:'今月は会えたのが1回で',fb:'数えられる出来事。'},{t:'全然会ってくれなくて',fb:'実際は、1回会えている。'},{t:'私を後回しにされて',fb:'「後回し」には評価が混ざっている。'}],
+   [{ok:1,t:'寂しかった',fb:'気持ち、そのまま。'},{t:'あなたは勝手だと思った',fb:'それは相手の採点。'},{t:'飽きられたんだと感じた',fb:'相手の気持ちの推測。自分の気持ちは、別にある。'}],
+   [{ok:1,t:'一緒に過ごす時間を大切にしたかった',fb:'大事にしたかったのは、これ。'},{t:'私を最優先にするべきだと思った',fb:'「べき」が出たら、だいたい要求。'},{t:'あなたに謝ってほしかった',fb:'それは、相手にさせたいこと。'}],
+   [{ok:1,t:'来月、会える日を一緒に考えられたら嬉しいな',fb:'具体的で、一緒にできる。'},{t:'もっと私のことを考えてほしい',fb:'何をすればいいのか、相手には謎。'},{t:'その冷たいところを直してほしい',fb:'また、人格のリフォーム依頼。'}]],
+  final:'今月は会えたのが1回で、寂しかった。来月、会える日を一緒に考えられたら嬉しいな。'},
+];
+function s2Start(){S.stage=2;s2Round(0)}
+function s2Round(r){S.s2={r,phase:'mine',found:[],miss:null,slot:0,wrong:[],fb:null,order:ROUNDS[r].slots.map(()=>shuffle([0,1,2]))};go('s2')}
+SC.s2=()=>{const s=S.s2,R=ROUNDS[s.r],nm=Object.keys(R.mines).length;
+  let h=shead('研修2｜翻訳',R.topic);
+  if(s.phase==='mine'){
+    const all=s.found.length>=nm;
+    h+=`<p class="q">地雷を${nm}つ、タップ（${s.found.length}/${nm}）</p>
+    <div class="blame">${R.segs.map((g,j)=>{const hit=s.found.includes(j);return `<button class="seg ${hit?'hit':''} ${s.miss===j?'safe':''}" ${hit?'disabled':''} onclick="s2Seg(${j})">${g}${hit?`<small>${R.mines[j]}</small>`:''}</button>`}).join('')}</div>`;
+    if(s.miss!==null&&!all)h+=`<div class="fb ng">そこは無事。大きく広げる言葉か、相手の気持ちの決めつけが怪しい。</div>`;
+    if(all)h+=`<div class="fb">${R.why}</div>`;
+    V.innerHTML=h;foot(all?btn('4つの部品で組み立て直す','s2Build()'):'');
+  }else{
+    const done=s.slot>=4;
+    h+=`<div class="sheet">${SLOT.map((sl,j)=>`<div class="row ${j<s.slot?'done':j===s.slot?'cur':''}"><div class="lab">${sl.lab}</div><div class="val">${j<s.slot?R.slots[j][0].t:j===s.slot?'？':''}</div></div>`).join('')}</div>`;
+    if(!done){const sl=SLOT[s.slot],opts=R.slots[s.slot];
+      h+=`<p class="q">${sl.q}</p><div class="opts">${s.order[s.slot].map(j=>`<button class="opt ${s.wrong.includes(j)?'ng':''}" ${s.wrong.includes(j)?'disabled':''} onclick="s2Pick(${j})">${opts[j].t}</button>`).join('')}</div>`;
+      if(s.fb!==null)h+=`<div class="fb ${s.fb.ok?'':'ng'}">${s.fb.t}</div>`;
+      V.innerHTML=h;foot('');if(s.fb!==null)V.scrollTop=V.scrollHeight;
+    }else if(s.phase==='build'){
+      h+=`<p class="q">翻訳、完了。</p><div class="sent">${R.final}</div>
+      <p class="dim">ニーズは自分用のメモ。送るのは、観察・感情・お願い。</p>`;
+      V.innerHTML=h;foot(btn('この形で送信','s2Send()'));V.scrollTop=V.scrollHeight;
+    }else{
+      V.innerHTML=shead('研修2｜翻訳',R.topic)+`<div class="sent fly">${R.final}<div class="dim" style="text-align:right">送信ずみ ✓</div></div>
+      <p class="dim">返事は相手のもの。ここまでが、こちらの仕事。</p>`;
+      foot(btn(s.r<ROUNDS.length-1?'つぎの依頼へ':'つぎへ','s2After()'));
+    }
+  }
+};
+function s2Seg(j){const s=S.s2,R=ROUNDS[s.r];if(R.mines[j]){if(!s.found.includes(j)){s.found.push(j);s.miss=null;add(50);sfx('hit')}}else{s.miss=j;sfx('ng')}render()}
+function s2Build(){sfx('tap');S.s2.phase='build';render();V.scrollTop=0}
+function s2Pick(j){const s=S.s2,o=ROUNDS[s.r].slots[s.slot][j];
+  if(o.ok){add(s.wrong.length?30:100);if(!s.wrong.length)S.stat.first++;sfx('ok');s.slot++;s.wrong=[];s.fb=s.slot<4?{ok:1,t:o.fb}:null}
+  else{s.wrong.push(j);s.fb={ok:0,t:o.fb};sfx('ng')}
+  render()}
+function s2Send(){sfx('win');S.s2.phase='sent';render();V.scrollTop=0}
+function s2After(){const s=S.s2;if(s.r<ROUNDS.length-1)s2Round(s.r+1);else qaStart('timing',()=>go('s2end'))}
+SC.s2end=()=>{S.stage=3;
+  V.innerHTML=shead('研修2 修了','翻訳メモ')+
+  `<div class="ticket"><ul><li>「いつも」「毎回」より、「昨日」「今回」。</li><li>相手の人格や気持ちは決めない。自分の気持ちは言う。</li><li>お願いは、具体的な行動で。</li><li>気持ちが強いときは、少し置く。話せるタイミングで。</li></ul></div>
+  <p class="dim">※相手の返事までは保証しません。こちらの気持ちを、伝わりやすい形に整えるところまで。</p>`;
+  foot(btn('研修3へ',"inter('s3',()=>go('tele'))"));
+};
+
+/* ============ generic QA ============ */
+const vis=(q,ans,fbOk,fbNg)=>({q,opts:[{t:'相手に見えている',ok:ans===0,fb:ans===0?fbOk:fbNg},{t:'自分の内側だけ',ok:ans===1,fb:ans===1?fbOk:fbNg}]});
+const QA={
+ timing:{tag:'研修2｜翻訳',h:'おまけ：送信ボタンの前で',pts:100,items:[
+  {q:'翻訳はできた。ただし現在、深夜2時。気持ちは絶賛、爆発中。',opts:[
+   {ok:1,t:'いったん寝かせる。お互い話せるときに送る',fb:'深夜2時の勢いは、朝にはだいたい別人。話せるタイミングは、選べる。'},
+   {t:'冷めないうちに、今すぐ連投する',fb:'勢いのまま送ると、翻訳前の文に戻りがち。'},
+   {t:'相手が話せなさそうでも、とにかく送る',fb:'受け取る側に余裕がないと、いい文も届きにくい。'}]}]},
+ visible:{tag:'研修3｜配達',h:'それ、相手に見えてる？',pts:60,fixed:true,items:[
+  vis('「本当は連休に会いたかった」という気持ち',1,'まだ言っていないので、こちら側にしかない。','言っていないことは、見えない。'),
+  vis('連休の予定について、特に話が出ていないこと',0,'相手に見えているのは、こっちだけ。','これは、二人とも確認できる出来事。'),
+  vis('気づいてほしくて、黙って待っている理由',1,'見えるのは「黙っている」まで。理由は非公開。','見えるのは「黙っている」まで。'),
+  vis('「今週は少し疲れているんだ」と言ったこと',0,'言葉にしたので、届く。','口に出したものは、見える。'),
+  vis('何に困っているのか、自分の中でははっきりしていること',1,'自分の中で鮮明でも、相手の画面には映らない。','鮮明なのは、こちら側だけ。')]},
+ stairs:{tag:'研修3｜配達',h:'小さい言葉から',pts:100,steps:['好み','今の気持ち','言い出し方','大切な話'],items:[
+  {q:'次のごはん。本当は、行きたいお店がある。',opts:[
+   {ok:1,t:'「私、こういうお店が好きなんだよね」',fb:'好みを言う。いちばん小さい配達。'},
+   {t:'「どこでもいいよ」と言って、当ててくれるか見る',fb:'相手に見えるのは「どこでもいい」だけ。当てるのは難しい。'},
+   {t:'「なんで私の好み、覚えてないの？」',fb:'まだ伝えていないことで、怒られる相手。'}]},
+  {q:'今週はくたくた。相手は気づいていなさそう。',opts:[
+   {ok:1,t:'「今週は少し疲れているんだ」',fb:'今の気持ちを、小さい言葉で。'},
+   {t:'大きめのため息をついて、待つ',fb:'ため息は聞こえる。意味は聞こえない。'},
+   {t:'「見ればわかるでしょ」',fb:'見ても分からないことは、わりと多い。'}]},
+  {q:'大切な話がしたい。最初のひとこと。',opts:[
+   {ok:1,t:'「ちょっと聞いてほしいことがあるんだけど、今話しても大丈夫？」',fb:'まず、相手が話せるかを聞く。'},
+   {t:'たまっていたことを、一度に全部',fb:'一度に全部は、だいたい渋滞する。'},
+   {t:'何も言わずに、不機嫌でいる',fb:'不機嫌は見える。理由は見えない。'}]},
+  {q:'「今、大丈夫だよ」と返ってきた。連休のこと。',opts:[
+   {ok:1,t:'「本当は連休に会えたら嬉しいと思っていたんだ。どこか空いている日はある？」',fb:'願いを、そのまま言葉で渡した。配達完了。'},
+   {t:'「連休、どうせ私と会う気ないんでしょ」',fb:'相手の気持ちを、先に決めてしまっている。'},
+   {t:'やっぱり言わずに、意味深な投稿をして様子を見る',fb:'意味深な投稿の解読率は、低い。'}]}]},
+};
+function qaStart(key,next){const q=QA[key];S.qa={key,i:0,wrong:[],done:false,fb:null,next,order:q.items.map(it=>q.fixed?it.opts.map((_,j)=>j):shuffle(it.opts.map((_,j)=>j)))};go('qa')}
+SC.qa=()=>{const s=S.qa,q=QA[s.key],it=q.items[s.i];
+  let h=shead(q.tag,q.h);
+  if(q.steps)h+=`<ol class="stairs">${q.steps.map((st,j)=>`<li class="${j<s.i||(j===s.i&&s.done)?'on':j===s.i?'cur':''}">${st}</li>`).join('')}</ol>`;
+  else if(q.items.length>1)h+=`<div class="count"><span>${s.i+1} / ${q.items.length}</span></div>`;
+  h+=`<div class="ticket"><p class="q">${it.q}</p></div><div class="opts">${s.order[s.i].map(j=>{const o=it.opts[j],w=s.wrong.includes(j);return `<button class="opt ${w?'ng':''} ${s.done&&o.ok?'ok':''}" ${w||s.done?'disabled':''} onclick="qaPick(${j})">${o.t}</button>`}).join('')}</div>`;
+  if(s.fb!==null)h+=`<div class="fb ${it.opts[s.fb].ok?'':'ng'}">${it.opts[s.fb].fb}</div>`;
+  V.innerHTML=h;foot(s.done?btn('つぎへ','qaNext()'):'');if(s.fb!==null)V.scrollTop=V.scrollHeight;
+};
+function qaPick(j){const s=S.qa,q=QA[s.key],o=q.items[s.i].opts[j];s.fb=j;
+  if(o.ok){s.done=true;if(!s.wrong.length){add(q.pts);S.stat.first++}else add(Math.round(q.pts*.3));sfx('ok')}else{s.wrong.push(j);sfx('ng')}render()}
+function qaNext(){const s=S.qa,q=QA[s.key];sfx('tap');s.i++;s.wrong=[];s.done=false;s.fb=null;if(s.i>=q.items.length)s.next();else{render();V.scrollTop=0}}
+
+/* ============ stage 3a: telepathy ============ */
+let TELE=0,TH=null;
+SC.tele=()=>{S.stage=3;
+  const done=TELE>=100;
+  V.innerHTML=shead('研修3｜配達','テレパシー送信テスト')+
+  `<div class="two"><div class="inner"><b>自分の内側</b>「本当は連休に会いたかった」</div></div>
+   <div class="gauge"><i id="tg" style="width:${TELE}%"></i></div>
+   ${done?`<div class="phone"><p class="dim">相手のスマホ</p><p class="zero">受信 0件</p>
+     <div class="two" style="text-align:left;margin-top:8px"><div><b>相手に見えていること</b>「連休の予定について、特に話が出ていない」</div></div></div>`
+    :`<p class="dim" style="text-align:center">ボタンを長押しして、念を100%まで。</p>`}`;
+  foot(done?btn('つぎへ',"inter('s3b',()=>qaStart('visible',()=>qaStart('stairs',()=>inter('boss',bossStart))))")
+    :`<button class="btn" id="tb" style="touch-action:none;user-select:none;-webkit-user-select:none">念を送る</button>`);
+  if(!done){const b=$('tb');
+    const stop=()=>{if(TH){cancelAnimationFrame(TH);TH=null}};
+    const tick=()=>{TELE=Math.min(100,TELE+1.1);const g=$('tg');if(g)g.style.width=TELE+'%';if(TELE>=100){stop();sfx('ng');render()}else TH=requestAnimationFrame(tick)};
+    b.onpointerdown=e=>{e.preventDefault();sfx('tap');TELE=Math.min(100,TELE+8);stop();TH=requestAnimationFrame(tick)};
+    b.onpointerup=b.onpointerleave=b.onpointercancel=stop;
+    b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){TELE=Math.min(100,TELE+12);if(TELE>=100){sfx('ng');render()}else $('tg').style.width=TELE+'%'}};
+  }
+};
+
+/* ============ boss ============ */
+const BOSS=[
+ {say:'既読から3時間。嫌われた。もうおしまい。',opts:[
+  {ok:1,t:'確認できたのは「3時間、返信がない」まで',fb:'事実はそこまで。「嫌われた」は未確認。'},
+  {bad:1,t:'そうか、嫌われたんだ',fb:'想像を、事実として受理してしまった。雲、成長。'},
+  {t:'絶対に仕事中なだけ。絶対',fb:'それも未確認。可能性のひとつ、くらいで。'}]},
+ {say:'寂しいなんて思うな。そんな気持ち、消してしまえ。',opts:[
+  {ok:1,t:'寂しかったのは本当。消さない',fb:'気持ちは仕分けの対象外。そのままでいい。'},
+  {bad:1,t:'何も感じていないことにする',fb:'行き場をなくした気持ちで、雲が育つ。'},
+  {t:'寂しくさせた相手が全部悪い',fb:'気持ちは本物。「全部悪い」は相手の採点。'}]},
+ {say:'今すぐ送れ。「なんでいつも返信くれないの」って。',opts:[
+  {ok:1,t:'「昨日」の話を、自分の気持ちとお願いで伝える',fb:'観察・感情・お願い。翻訳ずみ。'},
+  {bad:1,t:'そのまま送る',fb:'翻訳前の文が、そのまま飛んでいった。'},
+  {t:'「もういい」とだけ送る',fb:'何を望んでいるかは、相手に見えないまま。'}]},
+ {say:'言わなくても察するのが愛でしょ。黙って待て。',opts:[
+  {ok:1,t:'気持ちは、言わないと見えないことがある',fb:'テレパシーは未実装。言葉で配達。'},
+  {bad:1,t:'気づくまで、何日でも黙って待つ',fb:'相手に見えるのは「黙っている」だけ。'},
+  {t:'こっちも既読無視して、気づくか試す',fb:'試しても、内側は見えないまま。'}]},
+ {say:'今だ。深夜2時、怒りMAX。全部言ってやれ。',opts:[
+  {ok:1,t:'いったん置く。朝に「今話しても大丈夫？」から',fb:'置く。聞く。それから話す。'},
+  {bad:1,t:'今すぐ電話する',fb:'深夜2時の電話は、だいたい翻訳前。'},
+  {t:'思いつくまま、長文を10通送る',fb:'一度に全部は、渋滞する。'}]},
+];
+function bossStart(){S.stage=4;S.boss={i:0,hp:3,wrong:[],done:false,fb:null,order:BOSS.map(()=>shuffle([0,1,2]))};go('boss')}
+SC.boss=()=>{const s=S.boss,head=shead('最終試験','深夜2時。脳内、大騒ぎ。');
+  if(s.hp<=0){V.innerHTML=head+`<div class="arena"><div class="mw">${cloud(true,'bob')}</div></div><div class="ticket"><p class="q">ひと休み。</p><p>深夜2時は、だいたい分が悪い。ハートを補充して、同じところから。</p></div>`;
+    foot(btn('もう一度','bossRest()'));return}
+  const b=BOSS[s.i],sc=1-.13*(s.i+(s.done?1:0))+(s.wrong.length&&!s.done?.06:0),last=s.done&&s.i===BOSS.length-1;
+  let h=head+`<div class="arena"><div class="count" style="width:100%"><span>${s.i+1} / ${BOSS.length}</span><span class="hearts">${['lav','pink','rose'].map((v,k)=>`<i>${k<s.hp?heart(v):heartOff()}</i>`).join('')}</span></div>
+   <div class="mw">${cloud(!last,last?'':'bob',`transform:scale(${sc})`)}</div><div class="shout"><span class="tag">脳内速報</span><p>${b.say}</p></div></div>
+   <div class="opts">${s.order[s.i].map(j=>{const o=b.opts[j],w=s.wrong.includes(j);return `<button class="opt ${w?'ng':''} ${s.done&&o.ok?'ok':''}" ${w||s.done?'disabled':''} onclick="bossPick(${j})">${o.t}</button>`}).join('')}</div>`;
+  if(s.fb!==null)h+=`<div class="fb ${b.opts[s.fb].ok?'':'ng'}">${b.opts[s.fb].fb}</div>`;
+  V.innerHTML=h;foot(s.done?btn('つぎへ','bossNext()'):'');if(s.fb!==null)V.scrollTop=V.scrollHeight;
+};
+function bossPick(j){const s=S.boss,o=BOSS[s.i].opts[j];s.fb=j;
+  if(o.ok){s.done=true;if(!s.wrong.length){add(150);S.stat.first++}else add(50);sfx('hit')}
+  else{s.wrong.push(j);if(o.bad)s.hp--;sfx('ng')}
+  render()}
+function bossRest(){const s=S.boss;s.hp=3;s.wrong=[];s.fb=null;sfx('tap');render()}
+function bossNext(){const s=S.boss;s.i++;s.wrong=[];s.done=false;s.fb=null;
+  if(s.i>=BOSS.length){sfx('win');inter('bossEnd',()=>{S.stage=5;go('end')})}else{sfx('tap');render();V.scrollTop=0}}
+
+/* ============ ending ============ */
+const RANK=[[3700,'特級 きもち翻訳士'],[2700,'一級 きもち翻訳士'],[0,'きもち翻訳士']];
+const PH=['昨日、返信が翌日になった','ちょっと寂しい','忙しいときは、ひとこと知らせて'];
+const mkText=()=>{const m=S.mk,a=m.a.trim()||PH[0],b=m.b.trim()||PH[1],c=m.c.trim()||PH[2];return `私は、${a}とき、${b}と感じた。${c}もらえると嬉しい。`};
+SC.end=()=>{
+  try{if(S.score>+(localStorage.getItem('kimochi_best')||0))localStorage.setItem('kimochi_best',S.score)}catch(e){}
+  const rk=RANK.find(r=>S.score>=r[0])[1];
+  V.innerHTML=`<div><span class="tag">エンディング</span><h2>言いたかったこと、<br>やっと見つけた。</h2></div>
+   <div class="env cert"><div class="rank">${rk}</div><div class="big">${S.score}</div>
+    <p class="dim">仕分け ${S.stat.s1}/${CARDS.length}　最大コンボ ${S.maxCombo}　一発正解 ${S.stat.first}</p>
+    <div style="display:flex;justify-content:center;margin-top:8px">${trio()}</div><span class="seal">合格</span></div>
+   <div class="ticket mk"><b>今度は、自分の文で。</b>
+    <label for="mka">〇〇のとき（「昨日」「今回」の出来事）</label><input id="mka" value="${esc(S.mk.a)}" placeholder="${PH[0]}" oninput="mk('a',this.value)">
+    <label for="mkb">〇〇と感じた</label><input id="mkb" value="${esc(S.mk.b)}" placeholder="${PH[1]}" oninput="mk('b',this.value)">
+    <label for="mkc">〇〇して（もらえると嬉しい）</label><input id="mkc" value="${esc(S.mk.c)}" placeholder="${PH[2]}" oninput="mk('c',this.value)">
+    <div class="out" id="mkOut">${esc(mkText())}</div>
+    <p class="dim" id="mkMsg" style="margin-top:6px">※相手の返事は保証対象外です。送信は、お互い話せるタイミングで。</p></div>`;
+  foot(btn('この文をコピー','mkCopy()')+btn('もう一度あそぶ',"go('title')",'alt'));
+};
+function mk(k,v){S.mk[k]=v;$('mkOut').textContent=mkText()}
+function mkCopy(){const t=mkText(),ok=()=>{$('mkMsg').textContent='コピーしました。';sfx('ok')},ng=()=>{$('mkMsg').textContent='コピーできませんでした。ピンクの枠の文を長押しして選択してください。'};
+  try{navigator.clipboard.writeText(t).then(ok,ng)}catch(e){ng()}}
+
+render();
+</script>
+</body>
+</html>
